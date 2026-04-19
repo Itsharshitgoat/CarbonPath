@@ -73,7 +73,7 @@ mysql -u root -p < database.sql
 The app requires the MySQL JDBC driver. If it's not in the `lib/` folder, create the folder and download it:
 ```bash
 mkdir -p lib
-wget -O lib/mysql-connector-j.jar https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar
+curl -o lib/mysql-connector-j.jar https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar
 ```
 
 ### Step 5: Compile the Code
