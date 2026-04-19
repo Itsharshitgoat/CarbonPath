@@ -4,6 +4,8 @@ import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.ArrayList;
+import java.sql.SQLException;
 
 public class HistoryViewer extends JFrame {
     private static final Color BG_MAIN = new Color(252, 249, 244);
@@ -28,7 +30,14 @@ public class HistoryViewer extends JFrame {
 
         setupNavBar();
 
-        List<Trip> trips = DatabaseManager.getAllTrips();
+        List<Trip> trips = new ArrayList<>();
+        try {
+            trips = DatabaseManager.getAllTrips();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Failed to load history from database!\n\nReason: " + e.getMessage() + "\n\nEnsure MySQL is running and your password in DatabaseManager is correct.",
+                "Database Connection Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         double totalCarbon = 0;
         double totalPossibleSavings = 0;
@@ -67,7 +76,7 @@ public class HistoryViewer extends JFrame {
 
         JPanel emittedCard = createMiniSummaryCard("Emitted", df.format(totalCarbon) + " kg", new Color(235, 230, 220), TEXT_DARK);
         JPanel savedCard = createMiniSummaryCard("Saved", df.format(totalEcoSavingsMade) + " kg", BG_GREEN, TEXT_GREEN);
-        JPanel missedCard = createMiniSummaryCard("Missed", df.format(totalPossibleSavings - totalEcoSavingsMade) + " kg", BG_AMBER, TEXT_AMBER); // Missed is potential minus what was actually saved
+        JPanel missedCard = createMiniSummaryCard("Missed", df.format(totalPossibleSavings - totalEcoSavingsMade) + " kg", BG_AMBER, TEXT_AMBER);
 
         summaryCardsPanel.add(emittedCard);
         summaryCardsPanel.add(savedCard);
@@ -86,56 +95,64 @@ public class HistoryViewer extends JFrame {
         listPanel.setBackground(BG_MAIN);
         listPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        for (Trip trip : trips) {
-            JPanel card = new JPanel();
-            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-            card.setBackground(BG_CARD);
-            card.setBorder(new EmptyBorder(16, 16, 16, 16));
-            card.setAlignmentX(Component.LEFT_ALIGNMENT);
-            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
+        if (trips.isEmpty()) {
+            JLabel emptyLbl = new JLabel("No history found. Try calculating and saving a trip!");
+            emptyLbl.setFont(new Font("SansSerif", Font.ITALIC, 14));
+            emptyLbl.setForeground(Color.GRAY);
+            emptyLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            listPanel.add(emptyLbl);
+        } else {
+            for (Trip trip : trips) {
+                JPanel card = new JPanel();
+                card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+                card.setBackground(BG_CARD);
+                card.setBorder(new EmptyBorder(16, 16, 16, 16));
+                card.setAlignmentX(Component.LEFT_ALIGNMENT);
+                card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
 
-            JLabel dateLbl = new JLabel(sdf.format(trip.getDate()));
-            dateLbl.setFont(new Font("SansSerif", Font.PLAIN, 10));
-            dateLbl.setForeground(Color.GRAY);
-            dateLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+                JLabel dateLbl = new JLabel(sdf.format(trip.getDate()));
+                dateLbl.setFont(new Font("SansSerif", Font.PLAIN, 10));
+                dateLbl.setForeground(Color.GRAY);
+                dateLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            JLabel infoLbl = new JLabel(trip.getDistance() + " km via " + trip.getTransport());
-            infoLbl.setFont(new Font("SansSerif", Font.BOLD, 14));
-            infoLbl.setForeground(TEXT_DARK);
-            infoLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+                JLabel infoLbl = new JLabel(trip.getDistance() + " km via " + trip.getTransport());
+                infoLbl.setFont(new Font("SansSerif", Font.BOLD, 14));
+                infoLbl.setForeground(TEXT_DARK);
+                infoLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            JLabel emissionLbl = new JLabel("Emitted: " + df.format(trip.getCarbon()) + " kg");
-            emissionLbl.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            emissionLbl.setForeground(TEXT_DARK);
-            emissionLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+                JLabel emissionLbl = new JLabel("Emitted: " + df.format(trip.getCarbon()) + " kg");
+                emissionLbl.setFont(new Font("SansSerif", Font.PLAIN, 14));
+                emissionLbl.setForeground(TEXT_DARK);
+                emissionLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            card.add(dateLbl);
-            card.add(Box.createRigidArea(new Dimension(0, 4)));
-            card.add(infoLbl);
-            card.add(Box.createRigidArea(new Dimension(0, 4)));
-            card.add(emissionLbl);
-            card.add(Box.createRigidArea(new Dimension(0, 16)));
+                card.add(dateLbl);
+                card.add(Box.createRigidArea(new Dimension(0, 4)));
+                card.add(infoLbl);
+                card.add(Box.createRigidArea(new Dimension(0, 4)));
+                card.add(emissionLbl);
+                card.add(Box.createRigidArea(new Dimension(0, 16)));
 
-            // Savings breakdown in card
-            JPanel savingsMiniPanel = new JPanel();
-            savingsMiniPanel.setLayout(new GridLayout(1, 2, 10, 0));
-            savingsMiniPanel.setBackground(BG_CARD);
-            savingsMiniPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                // Savings breakdown in card
+                JPanel savingsMiniPanel = new JPanel();
+                savingsMiniPanel.setLayout(new GridLayout(1, 2, 10, 0));
+                savingsMiniPanel.setBackground(BG_CARD);
+                savingsMiniPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            boolean madeSavings = trip.getTransport().equals(trip.getSuggestedTransport()) && trip.getPotentialSaving() > 0;
-            String ecoVal = madeSavings ? df.format(trip.getPotentialSaving()) : "0.00";
-            String missedVal = (!madeSavings && trip.getPotentialSaving() > 0) ? df.format(trip.getPotentialSaving()) : "0.00";
+                boolean madeSavings = trip.getTransport().equals(trip.getSuggestedTransport()) && trip.getPotentialSaving() > 0;
+                String ecoVal = madeSavings ? df.format(trip.getPotentialSaving()) : "0.00";
+                String missedVal = (!madeSavings && trip.getPotentialSaving() > 0) ? df.format(trip.getPotentialSaving()) : "0.00";
 
-            JPanel leftCard = createMiniCard("Saved", ecoVal + " kg", BG_GREEN, TEXT_GREEN);
-            JPanel rightCard = createMiniCard("Missed", missedVal + " kg", BG_AMBER, TEXT_AMBER);
+                JPanel leftCard = createMiniCard("Saved", ecoVal + " kg", BG_GREEN, TEXT_GREEN);
+                JPanel rightCard = createMiniCard("Missed", missedVal + " kg", BG_AMBER, TEXT_AMBER);
 
-            savingsMiniPanel.add(leftCard);
-            savingsMiniPanel.add(rightCard);
+                savingsMiniPanel.add(leftCard);
+                savingsMiniPanel.add(rightCard);
 
-            card.add(savingsMiniPanel);
+                card.add(savingsMiniPanel);
 
-            listPanel.add(card);
-            listPanel.add(Box.createRigidArea(new Dimension(0, 16)));
+                listPanel.add(card);
+                listPanel.add(Box.createRigidArea(new Dimension(0, 16)));
+            }
         }
 
         JScrollPane scrollPane = new JScrollPane(mainPanel);

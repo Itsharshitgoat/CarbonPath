@@ -4,12 +4,13 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
+import java.sql.SQLException;
 
 public class UIFrame extends JFrame {
     private static final Color BG_MAIN = new Color(252, 249, 244);
     private static final Color BG_CARD = new Color(246, 243, 238);
     private static final Color TEXT_DARK = new Color(50, 50, 50);
-    private static final Color BTN_PRIMARY = new Color(244, 162, 97); // light orange
+    private static final Color BTN_PRIMARY = new Color(244, 162, 97);
     private static final Color BTN_ECO = new Color(120, 180, 120);
     private static final Color BTN_NEUTRAL = new Color(200, 200, 200);
     private static final Color BG_GREEN = new Color(230, 245, 230);
@@ -52,7 +53,7 @@ public class UIFrame extends JFrame {
         mainContainer = new JPanel();
         mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
         mainContainer.setBackground(BG_MAIN);
-        mainContainer.setBorder(new EmptyBorder(24, 24, 24, 24)); // consistent padding
+        mainContainer.setBorder(new EmptyBorder(24, 24, 24, 24));
 
         setupInputSection();
         setupResultSection();
@@ -272,12 +273,17 @@ public class UIFrame extends JFrame {
             trip = new Trip(currentDistance, currentTransport, currentCarbon, currentSuggestedTransport, currentSavings);
         }
 
-        DatabaseManager.saveTrip(trip);
-        JOptionPane.showMessageDialog(this, "Trip saved successfully!", "Saved", JOptionPane.INFORMATION_MESSAGE);
-
-        resultPanel.setVisible(false);
-        distanceField.setText("");
-        revalidate();
-        repaint();
+        try {
+            DatabaseManager.saveTrip(trip);
+            JOptionPane.showMessageDialog(this, "Trip saved successfully!", "Saved", JOptionPane.INFORMATION_MESSAGE);
+            resultPanel.setVisible(false);
+            distanceField.setText("");
+            revalidate();
+            repaint();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Failed to save to database!\n\nReason: " + e.getMessage() + "\n\nDid you enter your MySQL password in DatabaseManager.java?",
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
