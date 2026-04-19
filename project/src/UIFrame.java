@@ -1,19 +1,21 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.border.EmptyBorder;
 import java.text.DecimalFormat;
 
 public class UIFrame extends JFrame {
     private static final Color BG_MAIN = new Color(252, 249, 244);
     private static final Color BG_CARD = new Color(246, 243, 238);
     private static final Color TEXT_DARK = new Color(50, 50, 50);
-    private static final Color BTN_PRIMARY = new Color(40, 150, 140);
+    private static final Color BTN_PRIMARY = new Color(244, 162, 97); // light orange
     private static final Color BTN_ECO = new Color(120, 180, 120);
     private static final Color BTN_NEUTRAL = new Color(200, 200, 200);
-    private static final Color TEXT_AMBER = new Color(200, 120, 40);
+    private static final Color BG_GREEN = new Color(230, 245, 230);
+    private static final Color BG_AMBER = new Color(255, 245, 230);
     private static final Color TEXT_GREEN = new Color(40, 120, 40);
+    private static final Color TEXT_AMBER = new Color(200, 120, 40);
 
     private JTextField distanceField;
     private JComboBox<String> transportCombo;
@@ -22,13 +24,11 @@ public class UIFrame extends JFrame {
     private JLabel carbonLabel;
     private JLabel suggestionLabel;
 
-    private JPanel savingsCardPanel;
     private JLabel ecoSavingsLabel;
     private JLabel missedPotentialLabel;
 
     private JButton saveEcoBtn;
     private JButton saveNormalBtn;
-    private JPanel buttonsPanel;
 
     private double currentDistance = 0;
     private String currentTransport = "";
@@ -37,7 +37,6 @@ public class UIFrame extends JFrame {
     private double currentSavings = 0;
 
     private static final DecimalFormat df = new DecimalFormat("0.00");
-
     private JPanel mainContainer;
 
     public UIFrame() {
@@ -48,13 +47,12 @@ public class UIFrame extends JFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(BG_MAIN);
 
-        // Top Navigation Bar
         setupNavBar();
 
         mainContainer = new JPanel();
         mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
         mainContainer.setBackground(BG_MAIN);
-        mainContainer.setBorder(new EmptyBorder(24, 40, 24, 16));
+        mainContainer.setBorder(new EmptyBorder(24, 24, 24, 24)); // consistent padding
 
         setupInputSection();
         setupResultSection();
@@ -63,28 +61,27 @@ public class UIFrame extends JFrame {
     }
 
     private void setupNavBar() {
-        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        navPanel.setBackground(BG_CARD); // Rounded visual in Swing without custom painting is limited, using contrast color
-        navPanel.setBorder(new EmptyBorder(10, 40, 10, 16));
+        JPanel navPanel = new JPanel(new BorderLayout());
+        navPanel.setBackground(BG_MAIN);
+        navPanel.setBorder(new EmptyBorder(16, 24, 16, 24));
 
-        String[] navOptions = {"Carbon Path \u25BC", "Home", "View History"};
-        JComboBox<String> navMenu = new JComboBox<>(navOptions);
-        navMenu.setBackground(BG_CARD);
-        navMenu.setForeground(TEXT_DARK);
-        navMenu.setBorder(null);
-        navMenu.setFocusable(false);
-        navMenu.setFont(new Font("SansSerif", Font.BOLD, 16));
+        JLabel titleLabel = new JLabel("Carbon Path");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+        titleLabel.setForeground(TEXT_DARK);
 
-        navMenu.addActionListener(e -> {
-            String selection = (String) navMenu.getSelectedItem();
-            if ("View History".equals(selection)) {
-                new HistoryViewer().setVisible(true);
-                this.dispose();
-            }
-            navMenu.setSelectedIndex(0);
+        JButton historyBtn = new JButton("History");
+        historyBtn.setBackground(BTN_NEUTRAL);
+        historyBtn.setForeground(TEXT_DARK);
+        historyBtn.setFocusPainted(false);
+        historyBtn.setBorderPainted(false);
+        historyBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        historyBtn.addActionListener(e -> {
+            new HistoryViewer().setVisible(true);
+            this.dispose();
         });
 
-        navPanel.add(navMenu);
+        navPanel.add(titleLabel, BorderLayout.WEST);
+        navPanel.add(historyBtn, BorderLayout.EAST);
         add(navPanel, BorderLayout.NORTH);
     }
 
@@ -135,7 +132,7 @@ public class UIFrame extends JFrame {
         inputCard.add(calcBtn);
 
         mainContainer.add(inputCard);
-        mainContainer.add(Box.createRigidArea(new Dimension(0, 28)));
+        mainContainer.add(Box.createRigidArea(new Dimension(0, 24)));
     }
 
     private void setupResultSection() {
@@ -149,21 +146,22 @@ public class UIFrame extends JFrame {
         carbonLabel = new JLabel("Carbon Output: --");
         carbonLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         carbonLabel.setForeground(TEXT_DARK);
+        carbonLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         suggestionLabel = new JLabel("Suggested Transport: --");
         suggestionLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         suggestionLabel.setForeground(TEXT_DARK);
+        suggestionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Savings Card Panel - Left (Green) and Right (Amber)
-        savingsCardPanel = new JPanel();
+        JPanel savingsCardPanel = new JPanel();
         savingsCardPanel.setLayout(new GridLayout(1, 2, 10, 0));
         savingsCardPanel.setBackground(BG_CARD);
         savingsCardPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel leftCard = new JPanel();
         leftCard.setLayout(new BoxLayout(leftCard, BoxLayout.Y_AXIS));
-        leftCard.setBackground(new Color(230, 245, 230)); // Soft Green tone
-        leftCard.setBorder(new EmptyBorder(10, 10, 10, 10));
+        leftCard.setBackground(BG_GREEN);
+        leftCard.setBorder(new EmptyBorder(12, 12, 12, 12));
         JLabel ecoTitle = new JLabel("Eco Savings Achieved");
         ecoTitle.setFont(new Font("SansSerif", Font.PLAIN, 10));
         ecoTitle.setForeground(TEXT_GREEN);
@@ -176,8 +174,8 @@ public class UIFrame extends JFrame {
 
         JPanel rightCard = new JPanel();
         rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
-        rightCard.setBackground(new Color(255, 245, 230)); // Soft Amber tone
-        rightCard.setBorder(new EmptyBorder(10, 10, 10, 10));
+        rightCard.setBackground(BG_AMBER);
+        rightCard.setBorder(new EmptyBorder(12, 12, 12, 12));
         JLabel missedTitle = new JLabel("Missed Potential");
         missedTitle.setFont(new Font("SansSerif", Font.PLAIN, 10));
         missedTitle.setForeground(TEXT_AMBER);
@@ -191,8 +189,8 @@ public class UIFrame extends JFrame {
         savingsCardPanel.add(leftCard);
         savingsCardPanel.add(rightCard);
 
-        buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(2, 1, 0, 10));
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
         buttonsPanel.setBackground(BG_CARD);
         buttonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -202,6 +200,8 @@ public class UIFrame extends JFrame {
         saveEcoBtn.setFocusPainted(false);
         saveEcoBtn.setBorderPainted(false);
         saveEcoBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        saveEcoBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        saveEcoBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         saveEcoBtn.addActionListener(e -> saveTrip(true));
 
         saveNormalBtn = new JButton("Save Current Choice");
@@ -210,9 +210,12 @@ public class UIFrame extends JFrame {
         saveNormalBtn.setFocusPainted(false);
         saveNormalBtn.setBorderPainted(false);
         saveNormalBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        saveNormalBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        saveNormalBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         saveNormalBtn.addActionListener(e -> saveTrip(false));
 
         buttonsPanel.add(saveEcoBtn);
+        buttonsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         buttonsPanel.add(saveNormalBtn);
 
         resultPanel.add(carbonLabel);
@@ -220,7 +223,7 @@ public class UIFrame extends JFrame {
         resultPanel.add(suggestionLabel);
         resultPanel.add(Box.createRigidArea(new Dimension(0, 16)));
         resultPanel.add(savingsCardPanel);
-        resultPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        resultPanel.add(Box.createRigidArea(new Dimension(0, 24)));
         resultPanel.add(buttonsPanel);
 
         mainContainer.add(resultPanel);
@@ -236,18 +239,18 @@ public class UIFrame extends JFrame {
             double optimalEmission = SuggestionEngine.calculateOptimalEmission(currentDistance);
 
             currentSavings = currentCarbon - optimalEmission;
-            if (currentSavings < 0) currentSavings = 0; // Already optimal or better
+            if (currentSavings < 0) currentSavings = 0;
 
             carbonLabel.setText("Carbon Output: " + df.format(currentCarbon) + " kg CO₂");
             suggestionLabel.setText("Suggested Transport: " + currentSuggestedTransport);
 
-            ecoSavingsLabel.setText("0.00 kg"); // Pre-choice state
-            missedPotentialLabel.setText(df.format(currentSavings) + " kg"); // Shows what they are missing currently
+            ecoSavingsLabel.setText("0.00 kg");
+            missedPotentialLabel.setText(df.format(currentSavings) + " kg");
 
             if (currentSavings > 0) {
                 saveEcoBtn.setVisible(true);
             } else {
-                saveEcoBtn.setVisible(false); // No eco alternative better than current
+                saveEcoBtn.setVisible(false);
                 missedPotentialLabel.setText("0.00 kg");
             }
 
