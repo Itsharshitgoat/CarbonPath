@@ -32,6 +32,7 @@ The project is structured into `src/`, `lib/`, and `build/` directories. Here is
 
 *   **`build.sh`**: A shell script to compile all `.java` files from the `src/` directory into `.class` files in the `build/` directory.
 *   **`run.sh`**: A shell script to launch the compiled application.
+*   **`database.sql`**: A manual SQL file you can use to set up the database inside your MySQL server.
 
 ---
 
@@ -58,14 +59,24 @@ Before compiling, you must tell the app how to log in to your MySQL server.
    ```
 3. Change the `USER` and `PASSWORD` to match your local MySQL installation.
 
-### Step 3: Download Dependencies
+### Step 3: Setup the Database (Optional but Recommended)
+The Java app will *try* to create the database automatically when it runs, but it is best practice to create it yourself first.
+You can use the included `database.sql` file.
+
+Open your terminal and run:
+```bash
+mysql -u root -p < database.sql
+```
+*(It will ask for your MySQL password, then create the `carbon_path` database and the `trips` table instantly).*
+
+### Step 4: Download Dependencies
 The app requires the MySQL JDBC driver. If it's not in the `lib/` folder, create the folder and download it:
 ```bash
 mkdir -p lib
 wget -O lib/mysql-connector-j.jar https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar
 ```
 
-### Step 4: Compile the Code
+### Step 5: Compile the Code
 You must compile the Java source files into bytecode (`.class` files). We use the `javac` command, including the `lib` folder in the classpath (`-cp`).
 
 **Using the provided script:**
@@ -79,7 +90,7 @@ mkdir -p build
 javac -cp "lib/mysql-connector-j.jar:build" src/*.java -d build/
 ```
 
-### Step 5: Run the Application
+### Step 6: Run the Application
 Once compiled, you run the `MainApp` class, again providing the classpath.
 
 **Using the provided script:**
@@ -96,30 +107,10 @@ java -cp "lib/mysql-connector-j.jar:build" MainApp
 
 ## 🏗️ How the Code Works (Under the Hood)
 
-### 1. How the Database is Made
-When you launch the app, `MainApp.java` calls `DatabaseManager.initialize()`.
-This method connects to your local MySQL server (`jdbc:mysql://localhost:3306/`) and automatically creates the database if you haven't yet:
-```sql
-CREATE DATABASE IF NOT EXISTS carbon_path;
-```
-It then connects to that specific database and creates the table:
-```sql
-CREATE TABLE IF NOT EXISTS trips (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    distance DOUBLE,
-    transport VARCHAR(50),
-    carbon DOUBLE,
-    suggested_transport VARCHAR(50),
-    potential_saving DOUBLE,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-Everything is stored cleanly inside your local MySQL server.
-
-### 2. How the UI is Made (`UIFrame.java`)
+### 1. How the UI is Made (`UIFrame.java`)
 The UI is built using `javax.swing.*`. We use specific hex colors (`#fcf9f4`, `#f6f3ee`) and `EmptyBorder` to create structured, asymmetrical cards. It strictly uses left-aligned `BoxLayout` components to stack elements vertically without hard dividers or emojis.
 
-### 3. How the Logic Works
+### 2. How the Logic Works
 When you click **"Calculate"**:
 1. `UIFrame` reads the distance and transport dropdown.
 2. It calls `CarbonCalculator.calculateEmission()` to get current emissions.
@@ -130,7 +121,7 @@ When you click **"Save"**:
 1. A new `Trip` object is created with your final choice.
 2. `DatabaseManager.saveTrip(trip)` is called, which uses a `PreparedStatement` to safely `INSERT INTO trips` in your MySQL database.
 
-### 4. How the History is Generated
+### 3. How the History is Generated
 When you navigate to **History**:
 1. `HistoryViewer` calls `DatabaseManager.getAllTrips()` which executes `SELECT * FROM trips ORDER BY date DESC`.
 2. It loops through the results, adding up actual carbon emitted, total possible savings, and the eco savings you *actually achieved* by picking optimal choices.
