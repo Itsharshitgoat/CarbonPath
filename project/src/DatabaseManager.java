@@ -9,7 +9,7 @@ import java.util.List;
 import java.sql.Timestamp;
 
 public class DatabaseManager {
-    private static final String URL = "jdbc:sqlite:carbon_tracker.db";
+    private static final String URL = "jdbc:sqlite:carbon_path.db";
 
     public static void initialize() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS trips ("
@@ -18,7 +18,7 @@ public class DatabaseManager {
                 + "transport TEXT, "
                 + "carbon REAL, "
                 + "suggested_transport TEXT, "
-                + "potential_saving REAL, "
+                + "potential_saving REAL, " // keeping existing schema compat or drop it
                 + "date DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
 

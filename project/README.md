@@ -1,4 +1,4 @@
-# 🌿 Carbon Footprint Tracker & Transport Advisor
+# 🌿 Carbon Path & Transport Advisor
 
 A minimalist, rule-based Java desktop application that allows users to calculate carbon emissions for daily travel, receive practical suggestions to reduce emissions, track travel history, and visually understand their environmental impact over time.
 
@@ -36,7 +36,7 @@ The project is structured into `src/`, `lib/`, and `build/` directories. Here is
 
 ### 4. Database File (Generated dynamically)
 
-*   **`carbon_tracker.db`**: This file is created automatically in the root directory the first time you run the app. It is the actual SQLite database file storing your history.
+*   **`carbon_path.db`**: This file is created automatically in the root directory the first time you run the app. It is the actual SQLite database file storing your history.
 
 ---
 
@@ -92,7 +92,7 @@ java -cp "lib/*:build" MainApp
 
 ### 1. How the Database is Made
 When you launch the app, `MainApp.java` calls `DatabaseManager.initialize()`.
-This method connects to `jdbc:sqlite:carbon_tracker.db` (creating the file if it doesn't exist) and executes the following SQL:
+This method connects to `jdbc:sqlite:carbon_path.db` (creating the file if it doesn't exist) and executes the following SQL:
 ```sql
 CREATE TABLE IF NOT EXISTS trips (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
